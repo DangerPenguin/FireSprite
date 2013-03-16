@@ -1,7 +1,7 @@
 //FireSprite.js - an extremely simple Javascript, canvas-based sprite sheet parser for TexturePacker sprite sheets.
 //Created by Nicholas Wrenn on 12/14/2012
-//Last Modified by Nicholas Wrenn on 12/14/2012
-//Version - 0.1
+//Last Modified by Nicholas Wrenn on 3/16/2013
+//Version - 0.1.1
 //Check out my game company at www.goldenvaultgames.com
 
 function FireSpriteAtlas(jsonArray){
@@ -36,6 +36,24 @@ function FireSpriteAtlas(jsonArray){
 
 	}//endof createSprite
 
+	this.createSpriteCanvas = function(keyName){
+		var foundSprite = false;
+
+		for(var i = 0; i < this.srcArray.frames.length; i++){
+			if(this.srcArray.frames[i].filename == keyName){
+				var wantedSprite = this.srcArray.frames[i];
+				return new this.FireSpriteCanvas(this.SpriteSheet, wantedSprite.frame.x, wantedSprite.frame.y, wantedSprite.frame.w, wantedSprite.frame.h);
+				foundSprite = true;
+				break;
+			}
+		}
+		
+		//returns an alert error if it cant find the sprite, comment out if you dont want it (it wont break anything if its gone)
+		if(!foundSprite){
+			alert("Error: Sprite \""+keyName+"\" not found in " + this.spriteSheetLocation);
+		}
+	}//endof createSpriteCanvas
+
 	this.FireSprite = function(sourceSpriteSheet, sourceX, sourceY, sourceWidth, sourceHeight){
 		this.srcImage = sourceSpriteSheet;
 		this.srcX = sourceX;
@@ -68,5 +86,15 @@ function FireSpriteAtlas(jsonArray){
 			return this.scale;
 		}//endof getScale
 	}//endof FireSprite
+
+	this.FireSpriteCanvas = function(sourceSpriteSheet, sourceX, sourceY, sourceWidth, sourceHeight){
+		var imageCanvas = document.createElement('canvas');
+		imageCanvas.width = sourceWidth;
+		imageCanvas.heigh = sourceHeight;
+		var imageContext = imageCanvas.getContext("2d");
+		imageContext.drawImage(sourceSpriteSheet, sourceX, sourceY, sourceWidth, sourceHeight, 0, 0, sourceWidth, sourceHeight);
+
+		return imageCanvas;
+	}//endof FireSpriteCanvas
 
 }//endof FireSpriteAtlas
