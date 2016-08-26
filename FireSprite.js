@@ -5,96 +5,113 @@
 //Check out my game company at www.goldenvaultgames.com
 
 function FireSpriteAtlas(jsonArray){
+    //The jsonArray
+    this.srcArray = jsonArray;
 
-	//The jsonArray
-	this.srcArray = jsonArray;
+    //Get the location of the Image file from the passed in argument
+    this.spriteSheetLocation = jsonArray.meta.image;
 
-	//Get the location of the Image file from the passed in argument
-	this.spriteSheetLocation = jsonArray.meta.image;
-	
-	//Create an Image to house the spriteSheet then load it in
-	this.SpriteSheet = new Image();
-	this.SpriteSheet.src = this.spriteSheetLocation;
+    //Create an Image to house the spriteSheet then load it in
+    this.SpriteSheet = new Image();
+    this.SpriteSheet.src = this.spriteSheetLocation;
 
-	//By passing in a key (the sprites name) it loops through the atlas to find it and if so returns it
-	this.createSprite = function(keyName){
-		var foundSprite = false;
+    //By passing in a key (the sprites name) it loops through the atlas to find it and if so returns it
+    this.createSprite = function(keyName){
+        for(var i = 0; i < this.srcArray.frames.length; i++){
+            if(this.srcArray.frames[i].filename == keyName){
+                var wantedSprite = this.srcArray.frames[i];
+                return new this.FireSprite(this.SpriteSheet, wantedSprite.frame.x, wantedSprite.frame.y, wantedSprite.frame.w, wantedSprite.frame.h);
+            }
+        }
 
-		for(var i = 0; i < this.srcArray.frames.length; i++){
-			if(this.srcArray.frames[i].filename == keyName){
-				var wantedSprite = this.srcArray.frames[i];
-				return new this.FireSprite(this.SpriteSheet, wantedSprite.frame.x, wantedSprite.frame.y, wantedSprite.frame.w, wantedSprite.frame.h);
-				foundSprite = true;
-				break;
-			}
-		}
-		
-		//returns an alert error if it cant find the sprite, comment out if you dont want it (it wont break anything if its gone)
-		if(!foundSprite){
-			alert("Error: Sprite \""+keyName+"\" not found in " + this.spriteSheetLocation);
-		}
+        //returns an alert error if it cant find the sprite, comment out if you dont want it (it wont break anything if its gone)
+        alert("Error: Sprite \""+keyName+"\" not found in " + this.spriteSheetLocation);
 
-	}//endof createSprite
+    };//endof createSprite
 
-	this.createSpriteCanvas = function(keyName){
-		var foundSprite = false;
+    this.createSpriteCanvas = function(keyName){
+        for(var i = 0; i < this.srcArray.frames.length; i++){
+            if(this.srcArray.frames[i].filename == keyName){
+                var wantedSprite = this.srcArray.frames[i];
+                return new this.FireSpriteCanvas(this.SpriteSheet, wantedSprite.frame.x, wantedSprite.frame.y, wantedSprite.frame.w, wantedSprite.frame.h);
+            }
+        }
 
-		for(var i = 0; i < this.srcArray.frames.length; i++){
-			if(this.srcArray.frames[i].filename == keyName){
-				var wantedSprite = this.srcArray.frames[i];
-				return new this.FireSpriteCanvas(this.SpriteSheet, wantedSprite.frame.x, wantedSprite.frame.y, wantedSprite.frame.w, wantedSprite.frame.h);
-				foundSprite = true;
-				break;
-			}
-		}
-		
-		//returns an alert error if it cant find the sprite, comment out if you dont want it (it wont break anything if its gone)
-		if(!foundSprite){
-			alert("Error: Sprite \""+keyName+"\" not found in " + this.spriteSheetLocation);
-		}
-	}//endof createSpriteCanvas
+        //returns an alert error if it cant find the sprite, comment out if you dont want it (it wont break anything if its gone)
+        alert("Error: Sprite \""+keyName+"\" not found in " + this.spriteSheetLocation);
+    };//endof createSpriteCanvas
 
-	this.FireSprite = function(sourceSpriteSheet, sourceX, sourceY, sourceWidth, sourceHeight){
-		this.srcImage = sourceSpriteSheet;
-		this.srcX = sourceX;
-		this.srcY = sourceY;
-		this.srcWidth = sourceWidth;
-		this.srcHeight = sourceHeight;
-		this.scale = 1.0;
+    this.FireSprite = function(sourceSpriteSheet, sourceX, sourceY, sourceWidth, sourceHeight){
+        this.srcImage = sourceSpriteSheet;
+        this.srcX = sourceX;
+        this.srcY = sourceY;
+        this.srcWidth = sourceWidth;
+        this.srcHeight = sourceHeight;
+        this.scale = 1.0;
 
-		this.draw = function(canvasContext, drawX, drawY){
-			canvasContext.drawImage(this.srcImage, this.srcX, this.srcY, this.srcWidth, this.srcHeight, drawX, drawY, this.srcWidth*this.scale, this.srcHeight*this.scale);
-		}//endof draw
+        this.isImageLoaded = function(img) {
+            // During the onload event, IE correctly identifies any images that
+            // weren’t downloaded as not complete. Others should too. Gecko-based
+            // browsers act like NS4 in that they report this incorrectly.
+            if (!img.complete) {
+                return false;
+            }
 
-		this.setScale = function(newScale){
-			this.scale = newScale;
+            // However, they do have two very useful properties: naturalWidth and
+            // naturalHeight. These give the true size of the image. If it failed
+            // to load, either of these should be zero.
+            if (typeof img.naturalWidth !== "undefined" && img.naturalWidth === 0) {
+                return false;
+            }
 
-			if(this.scale < 0.0){
-				this.setScale(0.0);
-			}
-		}//endof setScale
+            // No other way of checking: assume it’s ok.
+            return true;
+        };
 
-		this.getWidth = function(){
-			return this.srcWidth * this.scale;
-		}//endof getWidth
+        this.draw = function(canvasContext, drawX, drawY){
+            function drawImage(img, x, y) {
+                canvasContext.drawImage(img.srcImage, img.srcX, img.srcY, img.srcWidth, img.srcHeight, x, y, img.srcWidth * img.scale, img.srcHeight * img.scale);
+            }
+            if (this.isImageLoaded(this.srcImage)) {
+                drawImage(this, drawX, drawY);
+            } else {
+                var _this = this;
+                this.srcImage.addEventListener("load", function () {
+                    _this.srcImage.removeEventListener("load", this);
+                    drawImage(_this, drawX, drawY);
+                });
+            }
+        };//endof draw
 
-		this.getHeight = function(){
-			return this.srcHeight * this.scale;
-		}//endof getHeight
+        this.setScale = function(newScale){
+            this.scale = newScale;
 
-		this.getScale = function(){
-			return this.scale;
-		}//endof getScale
-	}//endof FireSprite
+            if(this.scale < 0.0){
+                this.setScale(0.0);
+            }
+        };//endof setScale
 
-	this.FireSpriteCanvas = function(sourceSpriteSheet, sourceX, sourceY, sourceWidth, sourceHeight){
-		var imageCanvas = document.createElement('canvas');
-		imageCanvas.width = sourceWidth;
-		imageCanvas.heigh = sourceHeight;
-		var imageContext = imageCanvas.getContext("2d");
-		imageContext.drawImage(sourceSpriteSheet, sourceX, sourceY, sourceWidth, sourceHeight, 0, 0, sourceWidth, sourceHeight);
+        this.getWidth = function(){
+            return this.srcWidth * this.scale;
+        };//endof getWidth
 
-		return imageCanvas;
-	}//endof FireSpriteCanvas
+        this.getHeight = function(){
+            return this.srcHeight * this.scale;
+        };//endof getHeight
+
+        this.getScale = function(){
+            return this.scale;
+        };//endof getScale
+    };//endof FireSprite
+
+    this.FireSpriteCanvas = function(sourceSpriteSheet, sourceX, sourceY, sourceWidth, sourceHeight){
+        var imageCanvas = document.createElement('canvas');
+        imageCanvas.width = sourceWidth;
+        imageCanvas.heigh = sourceHeight;
+        var imageContext = imageCanvas.getContext("2d");
+        imageContext.drawImage(sourceSpriteSheet, sourceX, sourceY, sourceWidth, sourceHeight, 0, 0, sourceWidth, sourceHeight);
+
+        return imageCanvas;
+    };//endof FireSpriteCanvas
 
 }//endof FireSpriteAtlas
